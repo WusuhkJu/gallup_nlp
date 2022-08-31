@@ -1,6 +1,4 @@
 # gallup_nlp
-
-"""
 [NLP project for Gallup] - built by JWS
 1. Data
  - Question-answer data from surveys
@@ -27,7 +25,6 @@
  - Clustering
   : Using K-Means for clustering embedded vectors(Xs)
   : Choosing the number of cluster by representing the largest average silhouette value
-"""
 
 # CAUTION
 This may need a lot of space of GPU and CPU memories
