@@ -49,9 +49,9 @@ df.iloc[:5,:]
 
 #_________________________________________________________________________________________#
 
-# Class for setting input data(ids, attention masks)
+# Class for embedding
 class Gallup_NLP:        
-    def __init__(self, df, question_answer_concat = True, question_col_name = '질문', answer_col_name = '응답', group_col_name = None, keys = 'key', tokenizer_selection = 'kobert'):
+    def __init__(self, df, question_answer_concat = True, question_col_name = '질문', answer_col_name = '응답', group_col_name = None, keys = 'keys', tokenizer_selection = 'kobert'):
         self.df = df.sort_values(by=keys)
         self.question_answer_concat = question_answer_concat
         self.question_col_name = question_col_name
@@ -177,6 +177,9 @@ class Gallup_NLP:
         ids = self.ids
         attention_masks = self.attention_masks
 
+        if device_selection == 'tpu':
+            device_selection = xm.xla_device()      
+
         if self.tokenizer_selection == 'kobert':
             model = BertModel.from_pretrained('monologg/kobert').to(device_selection)            
             print('####### {} model has been set up #######'.format(model_selection))
@@ -277,7 +280,7 @@ nlp_inst_temp2 = Gallup_NLP(df = df, question_answer_concat = True, question_col
 nlp_inst_temp2.get_cleaned()
 nlp_inst_temp2.get_short_sentences(cut_criterion='iqr')
 nlp_inst_temp2.get_ids()
-nlp_inst_temp2.get_features(n_of_hidden_layers=4, model_selection='xlmr.base', device_selection='cuda')
+nlp_inst_temp2.get_features(n_of_hidden_layers=4, model_selection='xlmr.base', device_selection='tpu')
 
 #_________________________________________________________________________________________#
 
