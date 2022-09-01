@@ -1,4 +1,9 @@
 
+"""
+This script is for preprocessing and embedding.
+A learned model is going to be in another script
+"""
+
 #_________________________________________________________________________________________#
 
 # Installing kobert
@@ -18,14 +23,10 @@ import pandas as pd
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, TensorDataset
 
 from transformers import BertModel, BertTokenizer
 from transformers import XLMRobertaTokenizer
 from kobert_transformers import tokenization_kobert
-
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
 
 #_________________________________________________________________________________________#
 
@@ -50,7 +51,7 @@ df.iloc[:5,:]
 
 # Class for setting input data(ids, attention masks)
 class Gallup_NLP:        
-    def __init__(self, df, question_answer_concat = True, question_col_name = '질문', answer_col_name = '응답', group_col_name = None, keys = 'keys', tokenizer_selection = 'kobert'):
+    def __init__(self, df, question_answer_concat = True, question_col_name = '질문', answer_col_name = '응답', group_col_name = None, keys = 'key', tokenizer_selection = 'kobert'):
         self.df = df.sort_values(by=keys)
         self.question_answer_concat = question_answer_concat
         self.question_col_name = question_col_name
@@ -71,6 +72,7 @@ class Gallup_NLP:
         self.ids = None
         self.attention_masks = None
 
+        self.n_of_hidden_layers = None
         self.last_hidden_layers = None
         self.cls_tanh_layers = None
         self.all_hidden_layers = None
@@ -171,7 +173,7 @@ class Gallup_NLP:
         self.ids = ids
         self.attention_masks = attention_masks
 
-    def get_features(self, n_of_hidden_layers = 4, model_selection='kobert', device_selection='cpu'):
+    def get_features(self, n_of_hidden_layers = 4, model_selection='kobert', device_selection='cpu', start_idx = 0, end_idx = 5000):
         ids = self.ids
         attention_masks = self.attention_masks
 
@@ -183,7 +185,7 @@ class Gallup_NLP:
             cls_tanh_layers = torch.Tensor()
             all_hidden_layers = []
             
-            for i in range(len(ids)):
+            for i in range(start_idx, end_idx):
                 len_sequence = ids[i].shape[0]
                 id = ids[i].to(device_selection)
                 mask = attention_masks[i].to(device_selection)
@@ -204,11 +206,12 @@ class Gallup_NLP:
                 
                 print('Embedding {}/{} has been done'.format(i+1, len(ids)))
 
+            self.n_of_hidden_layers = n_of_hidden_layers
+            
             self.last_hidden_layers = last_hidden_layers
             self.cls_tanh_layers = cls_tanh_layers
-            self.all_hidden_layers = all_hidden_layers
-            
-       
+            self.all_hidden_layers = all_hidden_layers            
+
         else:
             # 'xlmr.base' 'xlmr.large', 'xlmr.xl', 'xlmr.xxl'
             model = torch.hub.load('pytorch/fairseq:main', model_selection).to(device_selection)
@@ -241,6 +244,25 @@ class Gallup_NLP:
             self.last_hidden_layers = last_hidden_layers
             self.cls_tanh_layers = cls_tanh_layers
             self.all_hidden_layers = all_hidden_layers
+
+    def get_cnn_dataset(self):
+        all_hidden_layers = self.all_hidden_layers
+        token_len = all_hidden_layers[0][0].shape[1]
+        feature_len = all_hidden_layers[0][0].shape[2]
+        n_of_hidden_layers = self.n_of_hidden_layers
+        
+        tensor_cnn_dataset = torch.Tensor()
+        t = 0
+        for i in range(len(all_hidden_layers)):
+            t += 1
+            inner_ten = torch.Tensor()
+            for j in range(n_of_hidden_layers):
+                inner_ten = torch.concat( [ inner_ten, all_hidden_layers[i][j].to('cpu') ], dim=1 )
+            inner_ten = inner_ten.reshape( (1, n_of_hidden_layers, token_len, feature_len) )
+            tensor_cnn_dataset = torch.concat( [ tensor_cnn_dataset, inner_ten ] ,dim=0 )
+            print('CNN tensor for {}/{} has been made'.format(t, len(all_hidden_layers)))                        
+        
+        self.cnn_dataset = tensor_cnn_dataset
 
 #___________________________________________________________#
 
