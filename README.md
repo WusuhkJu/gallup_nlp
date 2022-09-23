@@ -1,5 +1,6 @@
-# [Gallup Open-answer Autocoding] (built by JWS)
-release_v1: 202209
+# [Gallup Open-answer Autocoding] 
+built by JWS
+_release_v1: 202209
 
 Data
 - Using answer data from question-answer dataset
