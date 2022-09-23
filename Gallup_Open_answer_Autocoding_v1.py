@@ -45,7 +45,6 @@ import re
 
 from google.colab import files
 from statistics import mean
-from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 from sentence_transformers import SentenceTransformer, models
 from ko_sentence_transformers.models import KoBertTransformer
 from sklearn.cluster import AgglomerativeClustering
