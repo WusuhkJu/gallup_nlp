@@ -1,4 +1,3 @@
-"""
 # [Gallup Open-answer Autocoding] - built by JWS
 release_v1: 202209
 
@@ -28,5 +27,3 @@ Method Details
 !pip3 install transformers
 !pip3 install sentence_transformers
 !pip3 install fairseq
-
-"""
