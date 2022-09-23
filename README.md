@@ -1,4 +1,5 @@
-# [Gallup Open-answer Autocoding] _built by JWS
+# [Gallup Open-answer Autocoding] 
+_built by JWS
 release_v1: 202209
 
 Data
