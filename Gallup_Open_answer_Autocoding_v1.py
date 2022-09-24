@@ -174,7 +174,7 @@ class Autocoding:
         """
         묶을 대상이 
          : 일반 문장인 경우 threshold=0.173 추천
-         : 영어브랜드인 경우 threshold=0.075 추천
+         : 명사형인 경우 threshold=0.075 추천
         
         """
         
