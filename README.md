@@ -16,8 +16,7 @@ Method
 
 Method Details
 - Embedding
- : Transformating setences to vectors by SentenceTransformers_KoBERT 
- : SentenceTransformer_BERT_large is also availiable
+ : Transformating setences to vectors by SentenceTransformers_KoBERT. SentenceTransformer_BERT_large is also availiable
 
 - Clustering 
  : Agglomerative clustering used
