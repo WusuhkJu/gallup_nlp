@@ -24,7 +24,8 @@ Method
 
 Method Details
 - Embedding
- : Transformating setences to vectors by Ko-sentence-transforemrs
+ : Transformating setences to vectors by SentenceTransformer_KoBERT
+ : SentenceTransformer_BERT_large is also availiable
 
 - Clustering 
  : Drawing euclidean distance between maxtrix pairs(=embedded sentence pairs)
