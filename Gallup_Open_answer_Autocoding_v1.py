@@ -55,7 +55,7 @@ upload = files.upload()
 df1 = pd.read_excel(r'')
 
 class Preprocessing:        
-    def __init__(self, df, answer_col_name = '응답', tokenizer_selection = 'kobert'):
+    def __init__(self, df, answer_col_name = '응답'):
         self.answer_col_name = answer_col_name        
         self.raw = df[answer_col_name].values
         
