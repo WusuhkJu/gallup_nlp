@@ -53,7 +53,7 @@ from sklearn.cluster import AgglomerativeClustering
 # Uploading datasets
 upload = files.upload()
 
-df1 = pd.read_excel(r'')
+df = pd.read_excel(r'')
 
 class Preprocessing:        
     def __init__(self, df, answer_col_name = '응답'):
