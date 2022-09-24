@@ -23,8 +23,8 @@ Method Details
  : Clustering sentences having distance above a given threshold, e.g. 0.173, 0.075
 
 - Installing packages
-!pip3 install kobert-transformers 
-!pip3 install ko-sentence-transformers
 !pip3 install transformers
 !pip3 install sentence_transformers
 !pip3 install fairseq
+!pip3 install kobert-transformers 
+!pip3 install ko-sentence-transformers
