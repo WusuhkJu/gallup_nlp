@@ -5,7 +5,7 @@ release_v1: 202209
 Data
 - Using answer data from question-answer dataset
 - As the shape of input data is likely to be excel sheet and for usability of non-pythonic people, 
-  this code is designed to encompass from preprocessing of raw excel data to getting a result excel sheet by a few of clicks
+  this code was designed to a one-click implementation from raw files to results
 - This was originally built for clustering answers having similar meanings but any kind of Korean sentences could be used
 
 Objective
