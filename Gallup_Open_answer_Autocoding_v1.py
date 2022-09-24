@@ -118,35 +118,45 @@ class Autocoding:
         self.sentences = np.array(preprocessing.cleaned_sentences_short)
 
         self.model = None
+        self.model_selection = None
         self.embeddings = None
         self.sentence_embedding = None
 
         self.result = None
 
-    def get_model(self,device='cpu'):
-        word_embedding_model = KoBertTransformer("monologg/kobert", max_seq_length=100)
-        pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(), pooling_mode='mean')
-        model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+    def get_model(self,model_selection='kobert',device='cpu'):
+        if model_selection == 'kobert':
+            word_embedding_model = KoBertTransformer("monologg/kobert", max_seq_length=100)
+            pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(), pooling_mode='mean')
+            model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+        elif model_selection == 'bert':
+            model = SentenceTransformer('sentence-transformers/stsb-bert-large')
         model = model.to(device)
         self.model = model
+        self.model_selection = model_selection
 
     def get_embedding_vectors(self):
         start_time = time.time()
         
         sentences = self.sentences
         model = self.model
+        model_selection = self.model_selection
 
         def embedding(x):
-            return model.encode(x,convert_to_tensor=True)
+            return model.encode(x)
         embeddings = [ embedding(sentence) for sentence in sentences ]
         
         sentence_embedding = {}
         for sen, emb in zip(sentences, embeddings):
             sentence_embedding[sen] = emb
 
-        embeddings_array = np.zeros(shape=(len(embeddings),768))
-        def put_in(i,x,embeddings_array):
-            z = np.array(x).reshape(1,768)
+        if model_selection == 'kobert':
+            dim = 768
+        elif model_selection == 'bert':
+            dim = 1024        
+        embeddings_array = np.zeros(shape=(len(embeddings),dim))
+        def put_in(i,x,embeddings_array,dim=dim):
+            z = np.array(x).reshape(1,dim)
             embeddings_array[i] = z
 
         [ put_in(i,x,embeddings_array) for i,x in enumerate(embeddings) ]
@@ -162,7 +172,7 @@ class Autocoding:
         
         """
         묶을 대상이 
-         : 일반 문장인 경우 threshold=0.174 추천
+         : 일반 문장인 경우 threshold=0.173 추천
          : 영어브랜드인 경우 threshold=0.075 추천
         
         """
