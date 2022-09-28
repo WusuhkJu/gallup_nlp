@@ -17,7 +17,7 @@ Method
 Method Details
 - Embedding
  : Transformating setences to vectors by SentenceTransformer_KoBERT
- : SentenceTransformer_BERT_large is also availiable
+ : SentenceTransformer_BERT_large or RoBERTa is also availiable
 
 - Clustering 
  : Drawing euclidean distance between maxtrix pairs(=embedded sentence pairs)
@@ -124,6 +124,8 @@ class Autocoding:
             model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
         elif model_selection == 'bert':
             model = SentenceTransformer('sentence-transformers/stsb-bert-large')
+        elif model_selection == 'roberta':
+            model = SentenceTransformer('sentence-transformers/stsb-roberta-large')
         model = model.to(device)
         self.model = model
         self.model_selection = model_selection
@@ -145,8 +147,9 @@ class Autocoding:
 
         if model_selection == 'kobert':
             dim = 768
-        elif model_selection == 'bert':
-            dim = 1024        
+        elif (model_selection == 'bert') or (model_selection == 'roberta'):
+            dim = 1024
+
         embeddings_array = np.zeros(shape=(len(embeddings),dim))
         def put_in(i,x,embeddings_array,dim=dim):
             z = np.array(x).reshape(1,dim)
