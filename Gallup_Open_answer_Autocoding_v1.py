@@ -65,7 +65,7 @@ class Preprocessing:
                                     
     def get_cleaned(self):
         def sub(x):
-            return re.sub("[^A-Za-z0-9가-힣 ]",'',x)                                    
+            return re.sub("[^A-Za-z0-9가-힣 ]",'',str(x))                                    
 
         self.cleaned_sentences = [ sub(sentence) for sentence in self.raw ]
         print('########## Sentences have been cleansed ##########')
