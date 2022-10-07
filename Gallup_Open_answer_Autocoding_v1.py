@@ -21,7 +21,7 @@ Method Details
 
 - Clustering 
  : Drawing euclidean distance between maxtrix pairs(=embedded sentence pairs)
- : Clustering sentences having distance above a given threshold, e.g. 0.75
+ : Clustering sentences having distance above a given threshold, e.g. 0.174
 """
 
 !pip3 install kobert-transformers 
@@ -55,6 +55,7 @@ class Preprocessing:
         self.raw_keys = np.array([i for i in range(len(df))])
         self.key_sentence_dic = None
 
+        self.normal_keys = None
         self.cleaned_sentences_short = None
 
     def _get_key_sentence_dic(self):
@@ -108,13 +109,16 @@ class Preprocessing:
 
 class Autocoding:
     def __init__(self,preprocessing):
+        self.pre = preprocessing
         self.sentences = np.array(preprocessing.cleaned_sentences_short)
 
         self.model = None
         self.model_selection = None
+        self.dim = None
         self.embeddings = None
         self.sentence_embedding = None
 
+        self.codebook = None
         self.result = None
 
     def get_model(self,model_selection='kobert',device='cpu'):
@@ -157,6 +161,7 @@ class Autocoding:
 
         [ put_in(i,x,embeddings_array) for i,x in enumerate(embeddings) ]
         
+        self.dim = dim
         self.embeddings = embeddings_array
         self.sentence_embedding = sentence_embedding
 
@@ -164,22 +169,78 @@ class Autocoding:
         time_taking = round(end_time-start_time)
         print('{} sec has taken'.format(time_taking))
         
-    def clustering(self, distance='cosine', threshold=0.173):
+    def clustering(self, distance='cosine', threshold=0.174):
         
         """
         묶을 대상이 
-         : 일반 문장인 경우 threshold=0.173 추천
+         : 일반 문장인 경우 threshold=0.174 추천
          : 명사형인 경우 threshold=0.075 추천
         
         """
         
+        pre = self.pre
         embeddings = self.embeddings
         sentences = self.sentences
-
+        dim = self.dim
+                
         agglo = AgglomerativeClustering(n_clusters=None,affinity=distance,linkage='average',compute_full_tree=True,distance_threshold=threshold)
         agglo.fit(embeddings)
 
-        self.result = pd.DataFrame({'응답':sentences, '코딩':agglo.labels_})
+        nk_group = {}
+        for k, g in zip(pre.normal_keys, agglo.labels_):
+            nk_group[k] = g
+        group_container = np.array( [99998 for _ in range(len(pre.raw_keys))] )
+        def inserting_group(k,g,group_container=group_container):
+            group_container[k] = g
+        [ inserting_group(k,g) for k,g in nk_group.items() ]
+
+        raw_sentences = pre.raw
+
+        group_meaning = {}   
+        group_meaning[str(99998)] = 'NA'
+        def get_representitive_vect(uniq_g,labels=agglo.labels_,embeddings=embeddings,cleaned_sentences_short=pre.cleaned_sentences_short,dim=dim,group_meaning=group_meaning):
+            idxs = np.where(labels == uniq_g)[0]
+            temp_matrix = np.zeros(shape=(len(idxs),dim))
+            def insert_to_matrix(i,idx,temp_matrix=temp_matrix,embeddings=embeddings):
+                temp_matrix[i] = embeddings[idx]
+            [ insert_to_matrix(i,idx) for i,idx in enumerate(idxs) ]            
+            vector_mean = np.mean(temp_matrix,axis=0)
+
+            distance_list = []
+            def get_distance(x,vector_mean=vector_mean,distance_list=distance_list):
+                d = np.linalg.norm(vector_mean-x)
+                distance_list.append(d)
+            [ get_distance(x) for x in embeddings[idxs] ]
+
+            distance_array = np.array(distance_list)
+            closest_idx = idxs[np.where(distance_array == np.min(distance_array))[0][0]]
+            closest_sentence = cleaned_sentences_short[closest_idx]
+
+            group_meaning[str(uniq_g)] = closest_sentence
+        
+        uniq_groups = np.unique(agglo.labels_)
+        [ get_representitive_vect(uniq_g) for uniq_g in uniq_groups ]
+
+        keys = np.array([])
+        values = np.array([])
+        for k,v in group_meaning.items():
+            keys = np.append(keys,str(int(k)+1))
+            values = np.append(values,v)
+        
+        group_container = group_container+1
+        
+        self.codebook = pd.DataFrame({'코드':keys,'의미':values})
+        self.result = pd.DataFrame({'응답':raw_sentences, '코드':group_container})
+
+    def save_excel(self,file_name='test'):
+        result = self.result
+        codebook = self.codebook
+
+        result_name = '/content/' + file_name + '.xlsx'
+        result.to_excel(result_name)
+
+        codebook_name = '/content/' + file_name + '_' + 'codebook' + '.xlsx'
+        codebook.to_excel(codebook_name)
 
 # Preprocessing
 pre = Preprocessing(df)
@@ -191,6 +252,6 @@ auto = Autocoding(pre)
 auto.get_model()
 auto.get_embedding_vectors()
 
-auto.clustering(threshold=0.173)
+auto.clustering(threshold=0.174)
 
 auto.result
